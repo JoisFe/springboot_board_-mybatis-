@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.example.board.mapper.BoardMapper">
+
+
+    <select id="boardList" resultType="hashmap" parameterType="hashmap">
+        <![CDATA[
+        SELECT *
+        FROM board
+        ORDER BY createDate DESC
+            LIMIT #{pageStart}, #{perPageNum};
+        ]]>
+    </select>
+
+    <select id="boardListCnt" resultType="int">
+        SELECT count(*)
+        FROM board
+    </select>
+
+
+    <select id="getBoard" resultType="com.example.board.domain.Board">
+        SELECT * FROM board where id=#{id};
+    </select>
+
+    <insert id="uploadBoard" parameterType="com.example.board.domain.Board" >
+        INSERT INTO board(title, content, userId, createDate, modifyDate) VALUES (#{title}, #{content}, #{userId}, now(), now());
+    </insert>
+
+    <update id="updateBoard" parameterType="com.example.board.domain.Board" >
+        UPDATE board SET title =#{title}, content=#{content}, modifyDate=now() WHERE id =#{id};
+    </update>
+
+    <delete id="deleteBoard" parameterType="com.example.board.domain.Board" >
+        DELETE FROM board WHERE id=#{id};
+    </delete>
+</mapper>
+

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.example.board.mapper.CommentMapper">
+
+    <select id="commentList" resultType="hashmap" parameterType="hashmap">
+        <![CDATA[
+        SELECT *
+        FROM comment where boardId = #{boardId}
+        ORDER BY createDate DESC
+            LIMIT #{pageStart}, #{perPageNum};
+        ]]>
+    </select>
+
+    <select id="commentListCnt" resultType="int" parameterType="com.example.board.domain.Board">
+        SELECT count(*)
+        FROM comment where boardId = #{boardId}
+    </select>
+
+    <insert id="uploadComment">
+        INSERT INTO comment(
+                              boardId
+                            , content
+                            , userId
+                            , createDate
+                            , modifyDate
+        )
+        VALUES(    #{boardId}
+              , #{content}
+              , #{userId}
+              , now()
+              , now())
+    </insert>
+
+    <!-- 댓글 수정 -->
+    <update id="updateComment" parameterType="com.example.board.domain.Comment">
+        UPDATE comment SET content = #{content}, modifyDate = now()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 댓글 삭제 -->
+    <delete id="deleteComment" parameterType="com.example.board.domain.Comment">
+        DELETE FROM comment
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 선택된 댓글 조회 -->
+    <select id="getComment" resultType="com.example.board.domain.Comment">
+        SELECT
+            *
+        FROM comment
+        WHERE id = #{id}
+    </select>
+
+    <select id="getCommentBoardId" parameterType="com.example.board.domain.Comment" resultType="Long">
+        SELECT
+            boardId
+        FROM comment
+        WHERE id = #{id}
+    </select>
+</mapper>

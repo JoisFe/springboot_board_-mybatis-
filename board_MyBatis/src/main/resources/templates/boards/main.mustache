@@ -1,0 +1,141 @@
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>메인 페이지</title>
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+
+    <script src="js/includeHTML.js"></script>
+
+</head>
+
+<body>
+<script>
+    $(document).on('ready', function (e) {
+        $.post("/main",
+                function (data) { //data가 controller에서 리턴해주는 값
+                    for (let i = 0; i < data.list.length; ++i) {
+                        $("#boardTable").append("<tr>");
+                        $("#boardTable").append("<td>" + data.list[i].id + "</td>");
+                        $("#boardTable").append("<td>" + data.list[i].userId + "</td>");
+                        $("#boardTable").append("<td> <a href='/view?id=" + data.list[i].id + "'>" + data.list[i].title + "</td>");
+                        $("#boardTable").append("<td>" + data.list[i].createDate + "</td>");
+                        $("#boardTable").append("<td>" + data.list[i].modifyDate + "</td>");
+                        $("#boardTable").append("</tr>");
+                    }
+
+                    $(".pagination").append('<li id="pagingPrev" class="page-item"><input type="submit" class="page-link" name =' + (data.paging.startPage - 1) + ' value = "Prev"></li>');
+
+                    for (let i = data.paging.startPage; i <= data.paging.endPage; ++i) {
+                        $(".pagination").append('<li class="page-item"><input type="button" class="page-link" id = ' + i + ' value = ' + i + ' name = ' + i + '></li>')
+
+                    }
+
+                    $(".pagination").append('<li id="pagingNext" class="page-item"><input type="submit" class="page-link" name =' + (data.paging.endPage + 1) + ' value = "Next"></li>');
+
+                    document.getElementById(data.paging.cri.page).style.color = 'red';
+
+                });
+    });
+</script>
+
+
+
+{{#id}}
+    <nav include-html="html/nav2.html"></nav>
+{{/id}}
+{{^id}}
+    <nav include-html="html/nav.html"></nav>
+{{/id}}
+
+<div id="main" style="position: absolute;left:150px; right:150px; top:60px">
+    <h1 class="text-center text-danger">게시판</h1>
+
+    {{#id}}
+        <p class='text-body'> 로그인 된 아이디 : {{id}} </p><br>
+    {{/id}}
+    {{^id}}
+        비 로그인 상태입니다.<br>
+    {{/id}}
+
+
+    <table class="table table-striped" style="table-layout: fixed">
+        <thread>
+            <th>글번호</th>
+            <th>작성자</th>
+            <th>제목</th>
+            <th>생성 날짜</th>
+            <th>수정 날짜</th>
+        </thread>
+        <tbody id="boardTable">
+
+        </tbody>
+
+    </table>
+
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div class="pagination">
+
+                </div>
+
+                <script>
+                    $(document).on('ready', function (e) {
+                        document.addEventListener('click', function myFunction(e) {
+                            if (e.target.getAttribute('class') === "page-link") {
+                                $.post("/main",
+                                        {
+                                            page: e.target.getAttribute('name')
+                                        },
+                                        function (data) { //data가 controller에서 리턴해주는 값
+                                            console.log(data);
+                                            $("#boardTable").empty();
+                                            for (let i = 0; i < data.list.length; ++i) {
+                                                $("#boardTable").append("<tr>");
+                                                $("#boardTable").append("<td>" + data.list[i].id + "</td>");
+                                                $("#boardTable").append("<td>" + data.list[i].userId + "</td>");
+                                                $("#boardTable").append("<td> <a href='/view?id=" + data.list[i].id + "'>" + data.list[i].title + "</td>");
+                                                $("#boardTable").append("<td>" + data.list[i].createDate + "</td>");
+                                                $("#boardTable").append("<td>" + data.list[i].modifyDate + "</td>");
+                                                $("#boardTable").append("</tr>");
+                                            }
+
+                                            $(".pagination").empty();
+                                            $(".pagination").append('<li id="pagingPrev" class="page-item"><input type="submit" class="page-link" name =' + (data.paging.startPage - 1) + ' value = "Prev"></li>');
+
+                                            for (let i = data.paging.startPage; i <= data.paging.endPage; ++i) {
+                                                $(".pagination").append('<li id="paging"' + i + 'class="page-item"><input type="submit" class="page-link" id = ' + i + ' value = ' + i + ' name = ' + i + '></li>')
+                                            }
+
+                                            $(".pagination").append('<li id="pagingNext" class="page-item"><input type="submit" class="page-link" name =' + (data.paging.endPage + 1) + ' value = "Next"></li>');
+
+                                            document.getElementById(data.paging.cri.page).style.color = 'red';
+                                        });
+                            }
+                        })
+
+                    });
+
+                </script>
+
+            </div>
+        </div>
+    </div>
+
+    {{#id}}
+        <button type="button" class="btn btn-primary btn-lg pull-right" onclick="location.href='/upload';">글 등록하기
+        </button>
+    {{/id}}
+</div>
+
+</body>
+<script>
+    includeHTML();
+</script>
+</html>

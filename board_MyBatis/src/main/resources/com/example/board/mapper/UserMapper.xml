@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.board.mapper.UserMapper">
+    <insert id="register" parameterType="com.example.board.domain.User">
+        insert into user(userId, password) values(#{userId}, HEX(AES_ENCRYPT(#{password}, 'a')));
+
+    </insert>
+
+    <select id="login" parameterType="com.example.board.domain.User" resultType="int">
+        select count(*)
+        from user
+        where userId = #{userId} and password = HEX(AES_ENCRYPT(#{password}, 'a'));
+    </select>
+
+    <delete id="memberDelete" parameterType="com.example.board.domain.User">
+        delete from user where userId = #{userId} and password = HEX(AES_ENCRYPT(#{password}, 'a'));
+    </delete>
+
+    <select id="findId" parameterType="com.example.board.domain.User" resultType="com.example.board.domain.User">
+        select userId
+        from user
+        where userId = #{userId};
+    </select>
+
+    <select id="idCheck" resultType="int">
+        select count(*) from user where userId = #{userId};
+    </select>
+
+    <select id="memberCheck" resultType="int">
+        select count(*) from user where userId =#{userId} and password =#{password};
+    </select>
+
+</mapper>

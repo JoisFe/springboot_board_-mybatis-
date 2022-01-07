@@ -1,0 +1,245 @@
+<html xmlns xmlns:th="http://www.w3.org/1999/xhtml" : th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 상세 페이지</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+
+    <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+
+    <script src="js/includeHTML.js"></script>
+</head>
+<body>
+
+<script th:inline="javascript">
+    let message = [[${message}]];
+
+    if (message !== null) alert(message);
+</script>
+
+<script th:inline="javascript">
+    let sessionId = [[${session.id}]];
+    if (sessionId === null) document.write('<nav include-html="html/nav.html"></nav>');
+    else document.write('<nav include-html="html/nav2.html"></nav>')
+</script>
+
+<div style="position: absolute;left:150px; right:150px; top:60px">
+    <h1 class="text-center text-danger">게시글 상세 내용</h1>
+    <p>글번호 : [[${view.id}]]</p>
+    <p id="title">제목 : [[${view.title}]]</p>
+    <p>작성자 : [[${view.userId}]]</p>
+    내용 :
+    <div id="content">
+<textarea readonly="readonly"
+          class="form-control"
+          th:text="${view.content}">
+</textarea>
+    </div>
+
+    <script th:inline="javascript">
+        let id = [[${view.id}]];
+        let writerId = [[${view.userId}]];
+        let loginId = [[${id}]];
+
+        if (loginId === writerId) {
+            document.writeln('<button id="deleteBtn" class="btn btn-danger btn-sm float-right">삭제</button>')
+            document.writeln('<button id="updateBtn" class="btn btn-info btn-sm float-right">수정</button>')
+        }
+    </script>
+
+    <form id="form" th:action="@{/}" method="post">
+    </form>
+
+</div>
+
+<script th:inline="javascript">
+    $(document).on('ready', function (e) {
+        let form = $("#form");
+
+        $(document).on('click', '#deleteBtn', function (e) {
+            $('#form').attr("action", "delete");
+            form.append("<input type='hidden' name='id' value='" + id + "'>");
+            form.append("<input type='hidden' name='userId' value='" + writerId + "'>");
+            form.append("<input type='hidden' name='_method' value='delete'>");
+
+            form.submit();
+        })
+        $(document).on('click', '#updateBtn', function (e) {
+            let str = "<input class='form-control' width='250'" +
+                "placeholder='제목 입력' id='updateTitle'>";
+
+            $("#title").html(str);
+            str = "<textarea class='form-control' placeholder='내용 입력'" +
+                "id='updateContent'></textarea>";
+            $("#content").html(str);
+            $("#updateBtn").attr("id", "updateConfirmBtn");
+
+        })
+
+        $(document).on('click', '#updateConfirmBtn', function (e) {
+            $('#form').attr("action", "update");
+            let updateTitle = $('#updateTitle').val();
+            let updateContent = $('#updateContent').val();
+            form.append("<input type='hidden' name='id' value='" + id + "'>");
+            form.append("<input type='hidden' name='userId' value='" + writerId + "'>");
+            form.append("<input type='hidden' name='_method' value='put'>");
+            form.append("<input type='hidden' name='title' value='" + updateTitle + "'>");
+            form.append("<input type='hidden' name='content' value='" + updateContent + "'>");
+
+            form.submit();
+        })
+    })
+
+</script>
+
+<!-- 댓글 작성 -->
+
+<script th:inline="javascript">
+    $(document).on('ready', function (e) {
+        $("#commentUploadBtn").click(function () {
+            let userId = $("input[name=commentUserId]").val();
+            let boardId = $("input[name=commentBoardId]").val();
+            let content = $("textarea[name=commentContent]").val();
+
+            $.post("/comment",
+                {
+                    userId: userId,
+                    boardId: boardId,
+                    content: content
+                },
+                function (data) { //data가 controller에서 리턴해주는 값
+                    if (data === "success") {
+                        location.href = "/view?id=" + boardId;
+                    } else {
+                        alert(data); // 그냥 data를 alert해도 되고
+                    }
+                });
+        });
+    });
+</script>
+
+<div style="position: absolute;left:150px; right:150px; top:400px">
+    <input type="text" hidden class="form-control" id="id" name="commentUserId" readonly>
+    <script th:inline="javascript">
+        document.getElementById('id').value = loginId;
+
+    </script>
+    <input type="number" hidden class="form-control" id="bid" name="commentBoardId">
+    <script th:inline="javascript">
+        document.getElementById('bid').value = id;
+
+    </script>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header with-border">
+                <h3 class="card-title text-center text-danger">댓글 작성</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="form-group col-sm-10">
+                        <textarea class="form-control" placeholder='댓글 입력' name="commentContent"></textarea>
+                    </div>
+                    <script th:inline="javascript">
+                        if (loginId !== null) document.write('<button id="commentUploadBtn" class="btn btn-danger btn-sm float-right">댓글 등록하기</button>');
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).on('ready', function (e) {
+            let id = [[${view.id}]]
+            $.post("/view",
+                {id: id},
+                function (data) { //data가 controller에서 리턴해주는 값
+                    for (let i = 0; i < data.list.length; ++i) {
+                        $("#commentTable").append("<tr>");
+                        $("#commentTable").append("<td style = \"word-break: break-all\">" + data.list[i].content + "</td>");
+                        $("#commentTable").append("<td>" + data.list[i].userId + "</td>");
+                        $("#commentTable").append("<td> <a href='/commentView?id=" + data.list[i].id + "'>수정/삭제</td>");
+                        $("#commentTable").append("</tr>");
+                    }
+
+                    $(".pagination").append('<li id="pagingPrev" class="page-item"><input type="submit" class="page-link" name =' + (data.paging.startPage - 1) + ' value = "Prev"></li>');
+
+                    for (let i = data.paging.startPage; i <= data.paging.endPage; ++i) {
+                        $(".pagination").append('<li class="page-item"><input type="button" class="page-link" id = ' + i + ' value = ' + i + ' name = ' + i + '></li>')
+                    }
+
+                    $(".pagination").append('<li id="pagingNext" class="page-item"><input type="submit" class="page-link" name =' + (data.paging.endPage + 1) + ' value = "Next"></li>');
+
+                    document.getElementById(data.paging.cri.page).style.color = 'red';
+
+                });
+        });
+    </script>
+
+
+    <table class="table table-striped" style="table-layout: fixed">
+        <thread>
+            <th width="80%">내용</th>
+            <th width="10%">작성자</th>
+            <th width="10%">수정/삭제</th>
+
+        </thread>
+        <tbody id="commentTable">
+
+        </tbody>
+    </table>
+
+    <div class="container">
+        <div class="row">
+            <div class="col">
+
+                <ul class="pagination">
+
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+    $(document).on('ready', function (e) {
+        document.addEventListener('click', function myFunction(e) {
+            if (e.target.getAttribute('class') === "page-link") {
+                $.post("/view",
+                    {
+                        id: id,
+                        page: e.target.getAttribute('name')
+                    },
+                    function (data) { //data가 controller에서 리턴해주는 값
+                        console.log(data);
+                        $("#commentTable").empty();
+                        for (let i = 0; i < data.list.length; ++i) {
+                            $("#commentTable").append("<tr>");
+                            $("#commentTable").append("<td style = \"word-break: break-all\">" + data.list[i].content + "</td>");
+                            $("#commentTable").append("<td>" + data.list[i].userId + "</td>");
+                            $("#commentTable").append("<td> <a href='/commentView?id=" + data.list[i].id + "'>수정/삭제</td>");
+                            $("#commentTable").append("</tr>");
+                        }
+
+                        $(".pagination").empty();
+                        $(".pagination").append('<li id="pagingPrev" class="page-item"><input type="submit" class="page-link" name =' + (data.paging.startPage - 1) + ' value = "Prev"></li>');
+
+                        for (let i = data.paging.startPage; i <= data.paging.endPage; ++i) {
+                            $(".pagination").append('<li id="paging"' + i + 'class="page-item"><input type="submit" class="page-link" id = ' + i + ' value = ' + i + ' name = ' + i + '></li>')
+                        }
+
+                        $(".pagination").append('<li id="pagingNext" class="page-item"><input type="submit" class="page-link" name =' + (data.paging.endPage + 1) + ' value = "Next"></li>');
+
+                        document.getElementById(data.paging.cri.page).style.color = 'red';
+
+                    });
+            }
+        })
+
+    });
+
+</script>
+
+</body>
+<script>
+    includeHTML();
+</script>
+</html>
