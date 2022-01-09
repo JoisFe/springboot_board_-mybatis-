@@ -6,3 +6,4 @@
 2. MyBatis 사용
 3. Java 11
 4. gradle
+5. MySQL
